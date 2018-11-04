@@ -1,6 +1,6 @@
 ﻿namespace sol
 {
-    partial class Form1
+    partial class NeuralNet
     {
         /// <summary>
         /// Required designer variable.
@@ -30,20 +30,32 @@
         {
             this.components = new System.ComponentModel.Container();
             this._timer = new System.Windows.Forms.Timer(this.components);
+            this._rtbOutput = new System.Windows.Forms.RichTextBox();
             this.SuspendLayout();
             // 
             // _timer
             // 
             this._timer.Enabled = true;
-            this._timer.Interval = 2000;
+            this._timer.Interval = 1000;
+            this._timer.Tick += new System.EventHandler(this.Update);
             // 
-            // Form1
+            // _rtbOutput
+            // 
+            this._rtbOutput.Location = new System.Drawing.Point(12, 12);
+            this._rtbOutput.Name = "_rtbOutput";
+            this._rtbOutput.Size = new System.Drawing.Size(675, 500);
+            this._rtbOutput.TabIndex = 0;
+            this._rtbOutput.Text = "";
+            this._rtbOutput.ZoomFactor = 0.8F;
+            // 
+            // NeuralNet
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Name = "Form1";
-            this.Text = "Form1";
+            this.ClientSize = new System.Drawing.Size(1166, 523);
+            this.Controls.Add(this._rtbOutput);
+            this.Name = "NeuralNet";
+            this.Text = "NeuralNetcs";
             this.ResumeLayout(false);
 
         }
@@ -51,6 +63,6 @@
         #endregion
 
         private System.Windows.Forms.Timer _timer;
+        private System.Windows.Forms.RichTextBox _rtbOutput;
     }
 }
-
