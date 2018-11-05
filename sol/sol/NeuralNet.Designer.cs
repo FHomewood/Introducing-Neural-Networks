@@ -30,7 +30,6 @@
         {
             this.components = new System.ComponentModel.Container();
             this._timer = new System.Windows.Forms.Timer(this.components);
-            this._rtbOutput = new System.Windows.Forms.RichTextBox();
             this._lbout = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
@@ -39,18 +38,6 @@
             this._timer.Enabled = true;
             this._timer.Interval = 1000;
             this._timer.Tick += new System.EventHandler(this.Update);
-            // 
-            // _rtbOutput
-            // 
-            this._rtbOutput.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this._rtbOutput.Location = new System.Drawing.Point(12, 12);
-            this._rtbOutput.Name = "_rtbOutput";
-            this._rtbOutput.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.None;
-            this._rtbOutput.Size = new System.Drawing.Size(640, 415);
-            this._rtbOutput.TabIndex = 0;
-            this._rtbOutput.Text = "";
-            this._rtbOutput.WordWrap = false;
-            this._rtbOutput.ZoomFactor = 0.8F;
             // 
             // _lbout
             // 
@@ -67,7 +54,6 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1166, 436);
             this.Controls.Add(this._lbout);
-            this.Controls.Add(this._rtbOutput);
             this.Name = "NeuralNet";
             this.Text = "NeuralNetcs";
             this.ResumeLayout(false);
@@ -78,7 +64,6 @@
         #endregion
 
         private System.Windows.Forms.Timer _timer;
-        private System.Windows.Forms.RichTextBox _rtbOutput;
         private System.Windows.Forms.Label _lbout;
     }
 }

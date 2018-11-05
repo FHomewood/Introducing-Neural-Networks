@@ -13,6 +13,7 @@ namespace sol
 {
     public partial class NeuralNet : Form
     {
+        Panel[,] Image = new Panel[28, 28];
         IdxReader reader;
         byte[][,] matrix;
         Random rnd = new Random();
@@ -24,6 +25,14 @@ namespace sol
             //define network set up
             reader = new IdxReader("C:\\Users\\Chikan\\Downloads\\MNIST\\train-images.idx3-ubyte");
             matrix = reader.ReadToEndAsMatrices<byte>();
+            for (int i = 0; i < 28 * 28; i++)
+            {
+                Image[i / 28, i % 28] = new Panel();
+                Image[i / 28, i % 28].Location = new Point(10 + 10 * (i / 28), 10 + 10 * (i % 28));
+                Image[i / 28, i % 28].Size = new Size(10, 10);
+                Image[i / 28, i % 28].BackColor = Color.White;
+                this.Controls.Add( Image[i / 28, i % 28] );
+            }
             CreateNetwork(structure);
         }
         public void CreateNetwork(int[] structure)
@@ -44,11 +53,9 @@ namespace sol
             string output = "";
             for (int i = 0; i < 28 * 28; i++)
             {
-                output += i % 28 == 0 && i > 0? Environment.NewLine : "";
-                output += " "+string.Format("{0:000}", matrix[matID][i / 28, i % 28]);
+                Image[i % 28, i / 28].BackColor = Color.FromArgb(255- matrix[matID][i / 28, i % 28], matrix[matID][i / 28, i % 28], matrix[matID][i / 28, i % 28], matrix[matID][i / 28, i % 28]);
                 neuron[0, i].Set(matrix[matID][i / 28, i % 28]);
             }
-            _rtbOutput.Text = output;
             for (int i = 0; i < neuron.GetLength(0); i++)
                 for (int j = 0; j < neuron.GetLength(1); j++)
                     if (neuron[i,j] != null)
