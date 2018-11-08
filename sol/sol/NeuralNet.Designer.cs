@@ -36,17 +36,17 @@
             // _timer
             // 
             this._timer.Enabled = true;
-            this._timer.Interval = 1000;
+            this._timer.Interval = 2000;
             this._timer.Tick += new System.EventHandler(this.Update);
             // 
             // _lbout
             // 
             this._lbout.AutoSize = true;
-            this._lbout.Location = new System.Drawing.Point(675, 22);
+            this._lbout.BackColor = System.Drawing.Color.Transparent;
+            this._lbout.Location = new System.Drawing.Point(700, 20);
             this._lbout.Name = "_lbout";
-            this._lbout.Size = new System.Drawing.Size(46, 17);
+            this._lbout.Size = new System.Drawing.Size(0, 17);
             this._lbout.TabIndex = 1;
-            this._lbout.Text = "label1";
             // 
             // NeuralNet
             // 

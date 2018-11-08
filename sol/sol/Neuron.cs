@@ -9,8 +9,9 @@ namespace sol
     class Neuron
     {
         int layer, id;
-        public float val, bias;
-        float[] weight, input;
+        float val, bias;
+        public float[] weight;
+        float[] input;
         public Neuron(Random rnd, int layer, int id, int outNo, int inNo)
         {
             bias = (float)rnd.NextDouble();
@@ -42,6 +43,16 @@ namespace sol
         private float sig(float x)
         {
             return (float)(1 / (1 + Math.Exp(-x)));
+        }
+        public float Value
+        {
+            get { return val; }
+            set { val = value; }
+        }
+        public float Bias
+        {
+            get { return bias; }
+            set { bias = value; }
         }
     }
 }
