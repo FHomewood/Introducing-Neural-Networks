@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using MathNet.Numerics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Accord.IO;
+using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace sol
 {
@@ -25,9 +28,10 @@ namespace sol
         byte[] labMatrix;
         
         Random rnd = new Random();
-        Neuron[,] neuron = new Neuron[4,28*28];
         int TrainedData = 0;
         int[] structure = new int[] { 28 * 28, 16, 16, 10 };
+        List<Matrix<double>> Weight = new List<Matrix<double>>();
+
         public NeuralNet()
         {
             InitializeComponent();
@@ -70,16 +74,14 @@ namespace sol
         }
         public void CreateNetwork(int[] structure)
         {
-            for(int l = 0; l < structure.Length;l++)
-                for (int i = 0; i < structure[l]; i++)
-                {
-                    if (l == 0)
-                        neuron[l,i] = (new Neuron(rnd, l, i, structure[l + 1], 0));
-                    else if (l == structure.Length-1)
-                        neuron[l,i] = (new Neuron(rnd, l, i, 0, structure[l - 1]));
-                    else
-                        neuron[l,i] = (new Neuron(rnd, l, i, structure[l + 1], structure[l - 1]));
-                }
+            for (int i = 1; i < structure.Length; i++)
+            {
+                Matrix<double> weightMatrix = DenseMatrix.OfArray(new double[structure[i],structure[i-1]]);
+                for (int j = 0; j < weightMatrix.RowCount; j++)
+                    for (int k = 0; k < weightMatrix.ColumnCount; k++)
+                        weightMatrix[j,k] = (float)rnd.NextDouble();
+                Weight.Add(weightMatrix);
+            }
         }
         private void Update(object sender, EventArgs e)
         {
@@ -90,25 +92,25 @@ namespace sol
             float UnperturbedError = FindError(matID);
             float newError = FindError(matID);
 
-            for (int x = 0; x < neuron.GetLength(0); x++)
-                for (int y = 0; y < neuron.GetLength(1); y++)
-                    if (neuron[x, y] != null)
-                    {
-                        float perturbedError = FindError(matID);
-                        neuron[x, y].Bias += h;
-                        RunNetwork();
-                        newError = FindError(matID);
-                        neuron[x, y].Bias -= _learningRate * neuron[x, y].Bias*(perturbedError - newError) / h;
+            //for (int x = 0; x < neuron.GetLength(0); x++)
+            //    for (int y = 0; y < neuron.GetLength(1); y++)
+            //        if (neuron[x, y] != null)
+            //        {
+            //            float perturbedError = FindError(matID);
+            //            neuron[x, y].Bias += h;
+            //            RunNetwork();
+            //            newError = FindError(matID);
+            //            neuron[x, y].Bias -= _learningRate * neuron[x, y].Bias*(perturbedError - newError) / h;
 
-                        for (int i = 0; i < neuron[x, y].weight.Length; i++)
-                        {
-                            perturbedError = FindError(matID);
-                            neuron[x, y].weight[i] += h;
-                            RunNetwork();
-                            newError = FindError(matID);
-                            neuron[x, y].weight[i] -= _learningRate * neuron[x, y].weight[i] * (perturbedError - newError) / h;
-                        }
-                    }
+            //            for (int i = 0; i < neuron[x, y].weight.Length; i++)
+            //            {
+            //                perturbedError = FindError(matID);
+            //                neuron[x, y].weight[i] += h;
+            //                RunNetwork();
+            //                newError = FindError(matID);
+            //                neuron[x, y].weight[i] -= _learningRate * neuron[x, y].weight[i] * (perturbedError - newError) / h;
+            //            }
+                    //}
             for (int i = 0; i < 10; i++)
             {
                 lightINLabel[i].BackColor = labMatrix[matID] == i? Color.Green: Color.Black;
@@ -129,13 +131,10 @@ namespace sol
         }
         private void RunNetwork()
         {
-            for (int i = 0; i < neuron.GetLength(0); i++)
-                for (int j = 0; j < neuron.GetLength(1); j++)
-                    if (neuron[i, j] != null)
-                    {
-                        neuron[i, j].Update();
-                        neuron[i, j].Output(neuron);
-                    }
+            for (int i = 1; i < structure.Length; i++)
+            {
+                Matrix<float> name;
+            }
         }
         private float FindError(int matID)
         {
