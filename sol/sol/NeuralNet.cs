@@ -18,7 +18,7 @@ namespace sol
     {
         //custom variables
         int _panelsize = 16;
-        float _learningRate = 0.05f;
+        float _learningRate = 0.02f;
         float h = 0.001f;
 
         Panel[,] Image = new Panel[28, 28];
@@ -31,6 +31,7 @@ namespace sol
         int TrainedData = 0;
         int[] structure = new int[] { 28 * 28, 16, 16, 10 };
         List<Matrix<double>> Weight = new List<Matrix<double>>();
+        double[] outneuron = new double[10];
 
         public NeuralNet()
         {
@@ -69,28 +70,25 @@ namespace sol
                 Image[i / 28, i % 28].BackColor = Color.White;
                 this.Controls.Add( Image[i / 28, i % 28] );
             }
-            this.Size = new Size(20 + 29 * _panelsize, 50 + 29 * _panelsize + 29 * _panelsize / 10 + 29 * _panelsize / 10 / 2);
+            this.Size = new Size(20 + 29 * _panelsize, 65 + 29 * _panelsize + 29 * _panelsize / 10 + 29 * _panelsize / 10 / 2);
             CreateNetwork(structure);
         }
         public void CreateNetwork(int[] structure)
         {
             for (int i = 1; i < structure.Length; i++)
             {
-                Matrix<double> weightMatrix = DenseMatrix.OfArray(new double[structure[i],structure[i-1]]);
-                for (int j = 0; j < weightMatrix.RowCount; j++)
-                    for (int k = 0; k < weightMatrix.ColumnCount; k++)
-                        weightMatrix[j,k] = (float)rnd.NextDouble();
+                Matrix<double> weightMatrix = Matrix.Build.Random(structure[i],structure[i-1]);
                 Weight.Add(weightMatrix);
             }
         }
-        private void Update(object sender, EventArgs e)
+        private void UpdateNetwork(object sender, EventArgs e)
         {
             TrainedData++;
             int matID = rnd.Next(0, 10000);
             string output = "";
-            RunNetwork();
+            ForwardNetwork(matID);
             float UnperturbedError = FindError(matID);
-            float newError = FindError(matID);
+            //float newError = FindError(matID);
 
             //for (int x = 0; x < neuron.GetLength(0); x++)
             //    for (int y = 0; y < neuron.GetLength(1); y++)
@@ -110,31 +108,35 @@ namespace sol
             //                newError = FindError(matID);
             //                neuron[x, y].weight[i] -= _learningRate * neuron[x, y].weight[i] * (perturbedError - newError) / h;
             //            }
-                    //}
+            //}
             for (int i = 0; i < 10; i++)
             {
-                lightINLabel[i].BackColor = labMatrix[matID] == i? Color.Green: Color.Black;
-                lightOUTLabel[i].Text = neuron[3, i].Value.ToString("p1");
-                lightOUTLabel[i].BackColor = 255 * neuron[3, i].Value > 0 ? Color.FromArgb(255, (int)((float)255 * neuron[3, i].Value), 0, 0) : Color.FromArgb(255, 0, 0, (int)((float)255 * neuron[3, i].Value));
+                lightINLabel[i].BackColor = labMatrix[matID] == i ? Color.Green : Color.Black;
+                lightOUTLabel[i].Text = outneuron[i].ToString("p1");
+                lightOUTLabel[i].BackColor = 255 * outneuron[i] > 0 ? Color.FromArgb(255, (int)((float)255 * outneuron[i]), 0, 0) : Color.FromArgb(255, 0, 0, (int)((float)255 * outneuron[i]));
             }
-            for (int i = 0; i < 28 * 28; i++)
+            for (int i = 0; i < 28*28; i++)
             {
-                Image[i % 28, i / 28].BackColor = Color.FromArgb(255- imgMatrix[matID][i / 28, i % 28], imgMatrix[matID][i / 28, i % 28], imgMatrix[matID][i / 28, i % 28], imgMatrix[matID][i / 28, i % 28]);
-                neuron[0, i].Set(imgMatrix[matID][i / 28, i % 28]);
+                Image[i % 28, i / 28].BackColor = Color.FromArgb(255, imgMatrix[matID][i / 28, i % 28],
+                                                                      imgMatrix[matID][i / 28, i % 28],
+                                                                      imgMatrix[matID][i / 28, i % 28]);
             }
             for (int i = 0; i < 10; i++)
-                output += "( " + (i).ToString() + " ):   " + neuron[3, i].Value.ToString() + Environment.NewLine;
+                output += "( " + (i).ToString() + " ):   " + outneuron[i].ToString() + Environment.NewLine;
             output += Environment.NewLine + Environment.NewLine +
                 "Error: " + UnperturbedError.ToString() + Environment.NewLine +
                 TrainedData.ToString();
             _lbout.Text = output;
         }
-        private void RunNetwork()
+        private void ForwardNetwork(int matID)
         {
+            Matrix<double> outputs = DenseMatrix.OfColumnVectors(ConvertToVector(imgMatrix[matID]));
             for (int i = 1; i < structure.Length; i++)
             {
-                Matrix<float> name;
+                outputs = Sigmoid(Weight[i-1].Multiply(outputs));
             }
+            for (int i = 0; i < 10; i++)
+                outneuron[i] = outputs[i, 0];
         }
         private float FindError(int matID)
         {
@@ -142,15 +144,31 @@ namespace sol
             for (int i = 0; i < 10; i++)
             {
                 error += i == labMatrix[matID] ?
-                    (float)Math.Abs(neuron[3, i].Value - 1) :
-                    (float)Math.Abs(neuron[3, i].Value);
+                    (float)Math.Abs(outneuron[i] - 1) :
+                    (float)Math.Abs(outneuron[i]);
             }
             return error;
         }
-
         private void NeuralNet_Load(object sender, EventArgs e)
         {
 
+        }
+        public static Vector<double>[] ConvertToVector(byte[,] list)
+        {
+            double[] output = new double[list.GetLength(0) * list.GetLength(1)];
+            for (int i = 0; i < list.GetLength(0); i++)
+                for (int j = 0; j < list.GetLength(1); j++)
+                    output[i * list.GetLength(1) + j] = (double)list[i, j];
+            return new Vector<double>[] { DenseVector.OfArray(output) };
+        }
+        public static Matrix<double> Sigmoid(Matrix<double> matrix)
+        {
+            for (int i = 0; i < matrix.RowCount; i++)
+                for (int j = 0; j < matrix.ColumnCount; j++)
+                {
+                    matrix[i, j] = 1 / (1 + Math.Exp(matrix[i, j]));
+                }
+            return matrix;
         }
     }
 }
