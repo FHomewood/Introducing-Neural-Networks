@@ -42,8 +42,9 @@
             // _lbout
             // 
             this._lbout.AutoSize = true;
-            this._lbout.BackColor = System.Drawing.Color.Transparent;
-            this._lbout.Location = new System.Drawing.Point(700, 20);
+            this._lbout.BackColor = System.Drawing.Color.Black;
+            this._lbout.ForeColor = System.Drawing.Color.White;
+            this._lbout.Location = new System.Drawing.Point(33, 30);
             this._lbout.Name = "_lbout";
             this._lbout.Size = new System.Drawing.Size(0, 17);
             this._lbout.TabIndex = 1;
@@ -56,6 +57,7 @@
             this.Controls.Add(this._lbout);
             this.Name = "NeuralNet";
             this.Text = "NeuralNetcs";
+            this.Load += new System.EventHandler(this.NeuralNet_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

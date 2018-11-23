@@ -14,12 +14,12 @@ namespace sol
         float[] input;
         public Neuron(Random rnd, int layer, int id, int outNo, int inNo)
         {
-            bias = (float)rnd.NextDouble();
+            bias = 0.1f;
             this.layer = layer;
             this.id = id;
             weight = new float[outNo];
             input = new float[inNo];
-            for (int w = 0; w < weight.Length;w++) weight[w] = (float)rnd.NextDouble();
+            for (int w = 0; w < weight.Length;w++) weight[w] = 0.1f;
         }
         public void Update()
         {

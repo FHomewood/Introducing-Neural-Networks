@@ -14,8 +14,9 @@ namespace sol
     public partial class NeuralNet : Form
     {
         //custom variables
-        int _panelsize = 18;
-        float _learningRate = 0.1f;
+        int _panelsize = 16;
+        float _learningRate = 0.05f;
+        float h = 0.001f;
 
         Panel[,] Image = new Panel[28, 28];
         Label[] lightINLabel = new Label[10];
@@ -64,7 +65,7 @@ namespace sol
                 Image[i / 28, i % 28].BackColor = Color.White;
                 this.Controls.Add( Image[i / 28, i % 28] );
             }
-            this.Size = new Size(38 + 28 * _panelsize, 50 + 28 * _panelsize + 28 * _panelsize / 10 + 28 * _panelsize / 10 / 2);
+            this.Size = new Size(20 + 29 * _panelsize, 50 + 29 * _panelsize + 29 * _panelsize / 10 + 29 * _panelsize / 10 / 2);
             CreateNetwork(structure);
         }
         public void CreateNetwork(int[] structure)
@@ -85,6 +86,29 @@ namespace sol
             TrainedData++;
             int matID = rnd.Next(0, 10000);
             string output = "";
+            RunNetwork();
+            float UnperturbedError = FindError(matID);
+            float newError = FindError(matID);
+
+            for (int x = 0; x < neuron.GetLength(0); x++)
+                for (int y = 0; y < neuron.GetLength(1); y++)
+                    if (neuron[x, y] != null)
+                    {
+                        float perturbedError = FindError(matID);
+                        neuron[x, y].Bias += h;
+                        RunNetwork();
+                        newError = FindError(matID);
+                        neuron[x, y].Bias -= _learningRate * neuron[x, y].Bias*(perturbedError - newError) / h;
+
+                        for (int i = 0; i < neuron[x, y].weight.Length; i++)
+                        {
+                            perturbedError = FindError(matID);
+                            neuron[x, y].weight[i] += h;
+                            RunNetwork();
+                            newError = FindError(matID);
+                            neuron[x, y].weight[i] -= _learningRate * neuron[x, y].weight[i] * (perturbedError - newError) / h;
+                        }
+                    }
             for (int i = 0; i < 10; i++)
             {
                 lightINLabel[i].BackColor = labMatrix[matID] == i? Color.Green: Color.Black;
@@ -96,28 +120,11 @@ namespace sol
                 Image[i % 28, i / 28].BackColor = Color.FromArgb(255- imgMatrix[matID][i / 28, i % 28], imgMatrix[matID][i / 28, i % 28], imgMatrix[matID][i / 28, i % 28], imgMatrix[matID][i / 28, i % 28]);
                 neuron[0, i].Set(imgMatrix[matID][i / 28, i % 28]);
             }
-            RunNetwork();
-            float UnperturbedError = FindError(matID);
-            for (int x = 0; x < neuron.GetLength(0); x++)
-                for (int y = 0; y < neuron.GetLength(1); y++)
-                    if (neuron[x, y] != null)
-                    {
-                        neuron[x, y].Bias += 0.001f;
-                        RunNetwork();
-                        neuron[x, y].Bias -= _learningRate * (UnperturbedError - FindError(matID)) / 0.001f;
-
-                        for (int i = 0; i < neuron[x, y].weight.Length; i++)
-                        {
-                            neuron[x, y].weight[i] += 0.001f;
-                            RunNetwork();
-                            neuron[x, y].weight[i] -= _learningRate * (UnperturbedError - FindError(matID)) / 0.001f;
-                        }
-                    }
             for (int i = 0; i < 10; i++)
                 output += "( " + (i).ToString() + " ):   " + neuron[3, i].Value.ToString() + Environment.NewLine;
             output += Environment.NewLine + Environment.NewLine +
                 "Error: " + UnperturbedError.ToString() + Environment.NewLine +
-                TimeSpan.FromMilliseconds(_timer.Interval * TrainedData).ToString();
+                TrainedData.ToString();
             _lbout.Text = output;
         }
         private void RunNetwork()
@@ -139,7 +146,12 @@ namespace sol
                     (float)Math.Abs(neuron[3, i].Value - 1) :
                     (float)Math.Abs(neuron[3, i].Value);
             }
-            return error/10;
+            return error;
+        }
+
+        private void NeuralNet_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }
