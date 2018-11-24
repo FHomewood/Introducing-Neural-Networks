@@ -18,8 +18,8 @@ namespace sol
     {
         //custom variables
         int _panelsize = 16;
-        float _learningRate = 0.02f;
-        float h = 0.001f;
+        double _learningRate = 0.000000002;
+        double h = 0.00001;
 
         Panel[,] Image = new Panel[28, 28];
         Label[] lightINLabel = new Label[10];
@@ -91,11 +91,7 @@ namespace sol
             matID = rnd.Next(0, 10000);
             ForwardNetwork();
             double UnperturbedError = FindError();
-            UpdateGUI(UnperturbedError.ToString());
             BackPropagate();
-        }
-        private void UpdateGUI(string error)
-        {
             string output = "";
             for (int i = 0; i < 10; i++)
             {
@@ -109,7 +105,7 @@ namespace sol
                                                                       imgMatrix[matID][i / 28, i % 28],
                                                                       imgMatrix[matID][i / 28, i % 28]);
             }
-            output += "Error: " + error + Environment.NewLine +
+            output += "Error: " + UnperturbedError.ToString() + Environment.NewLine +
                       "Data Trained: " + TrainedData.ToString();
             _lbout.Text = output;
         }
@@ -134,6 +130,10 @@ namespace sol
             }
             return error;
         }
+        private double ErrorDerivative()
+        {
+            return 1;
+        }
         private void BackPropagate()
         {
             for (int i = 0; i < Weight.Count(); i++)
@@ -145,7 +145,7 @@ namespace sol
                         ForwardNetwork();
                         double newerror = FindError();
                         double gradient = (error - newerror) / h;
-                        Weight[i][j, k] -= h + _learningRate * gradient;
+                        Weight[i][j, k] -= _learningRate * gradient;
                     }
             for (int i = 0; i < Bias.Count(); i++)
                 for (int j = 0; j < Weight[i].RowCount; j++)

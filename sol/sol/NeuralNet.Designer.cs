@@ -36,7 +36,7 @@
             // _timer
             // 
             this._timer.Enabled = true;
-            this._timer.Interval = 2000;
+            this._timer.Interval = 4000;
             this._timer.Tick += new System.EventHandler(this.UpdateNetwork);
             // 
             // _lbout

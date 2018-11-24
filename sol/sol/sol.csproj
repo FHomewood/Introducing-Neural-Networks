@@ -68,7 +68,6 @@
     <Compile Include="NeuralNet.Designer.cs">
       <DependentUpon>NeuralNet.cs</DependentUpon>
     </Compile>
-    <Compile Include="Neuron.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="NeuralNet.resx">
