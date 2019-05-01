@@ -18,8 +18,8 @@ namespace sol
     {
         //custom variables
         int _panelsize = 16;
-        double _learningRate = 0.000000002;
-        double h = 0.00001;
+        double _learningRate = 0.2;
+        double h = 0.01;
 
         Panel[,] Image = new Panel[28, 28];
         Label[] lightINLabel = new Label[10];
@@ -34,7 +34,7 @@ namespace sol
         List<Matrix<double>> Weight = new List<Matrix<double>>();
         List<Matrix<double>> Bias = new List<Matrix<double>>();
         double[] outneuron = new double[10];
-
+        double[] prediction = new double[10];
         public NeuralNet()
         {
             InitializeComponent();
@@ -96,7 +96,7 @@ namespace sol
             for (int i = 0; i < 10; i++)
             {
                 lightINLabel[i].BackColor = labMatrix[matID] == i ? Color.Green : Color.Black;
-                lightOUTLabel[i].Text = outneuron[i].ToString("p1");
+                lightOUTLabel[i].Text = prediction[i].ToString("p1");
                 lightOUTLabel[i].BackColor = 255 * outneuron[i] > 0 ? Color.FromArgb(255, (int)((float)255 * outneuron[i]), 0, 0) : Color.FromArgb(255, 0, 0, (int)((float)255 * outneuron[i]));
             }
             for (int i = 0; i < 28 * 28; i++)
@@ -105,7 +105,7 @@ namespace sol
                                                                       imgMatrix[matID][i / 28, i % 28],
                                                                       imgMatrix[matID][i / 28, i % 28]);
             }
-            output += "Error: " + UnperturbedError.ToString() + Environment.NewLine +
+            output += "Error: " + UnperturbedError.ToString("p0") + Environment.NewLine +
                       "Data Trained: " + TrainedData.ToString();
             _lbout.Text = output;
         }
@@ -121,18 +121,24 @@ namespace sol
         }
         private double FindError()
         {
+            prediction = new double[10];
+            double tot = 0;
+            for (int i = 0; i < outneuron.Length; i++)
+            {
+                tot += outneuron[i];
+            }
+            for (int i = 0; i < outneuron.Length; i++)
+            {
+                prediction[i] = outneuron[i] / tot;
+            }
             double error = 0;
             for (int i = 0; i < 10; i++)
             {
                 error += i == labMatrix[matID] ?
-                    (outneuron[i] - 1) * (outneuron[i] - 1) :
-                    (outneuron[i]) * (outneuron[i]);
+                    (1 - prediction[i]) * (1 - prediction[i]) :
+                    (0 - prediction[i]) * (0 - prediction[i]);
             }
-            return error;
-        }
-        private double ErrorDerivative()
-        {
-            return 1;
+            return error/2;
         }
         private void BackPropagate()
         {
@@ -144,8 +150,8 @@ namespace sol
                         Weight[i][j, k] += h;
                         ForwardNetwork();
                         double newerror = FindError();
-                        double gradient = (error - newerror) / h;
-                        Weight[i][j, k] -= _learningRate * gradient;
+                        double gradient = (newerror - gradient) / h;
+                        Weight[i][j, k] -= h +_learningRate * gradient;
                     }
             for (int i = 0; i < Bias.Count(); i++)
                 for (int j = 0; j < Weight[i].RowCount; j++)
@@ -154,8 +160,8 @@ namespace sol
                         Bias[i][j, 0] += h;
                         ForwardNetwork();
                         double newerror = FindError();
-                        double gradient = (error - newerror) / h;
-                        Bias[i][j, 0] -= h - _learningRate * gradient;
+                        double gradient = (newerror - error) / h;
+                        Bias[i][j, 0] -= h+_learningRate * gradient;
                     }
         }
         private void NeuralNet_Load(object sender, EventArgs e)
