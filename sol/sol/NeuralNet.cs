@@ -18,23 +18,24 @@ namespace sol
     {
         //custom variables
         int _panelsize = 16;
-        double _learningRate = 0.2;
-        double h = 0.01;
+        double _learningRate = 0.02;
+        double h = 0.000001;
 
         Panel[,] Image = new Panel[28, 28];
         Label[] lightINLabel = new Label[10];
         Label[] lightOUTLabel = new Label[10];
         byte[][,] imgMatrix;
         byte[] labMatrix;
-        int matID = 0;
+        int[] matID = new int[10];
         
         Random rnd = new Random();
         int TrainedData = 0;
         int[] structure = new int[] { 28 * 28, 16, 16, 10 };
         List<Matrix<double>> Weight = new List<Matrix<double>>();
         List<Matrix<double>> Bias = new List<Matrix<double>>();
-        double[] outneuron = new double[10];
-        double[] prediction = new double[10];
+        double[,] outneuron = new double[10,10];
+        double[,] prediction = new double[10,10];
+
         public NeuralNet()
         {
             InitializeComponent();
@@ -88,22 +89,23 @@ namespace sol
         private void UpdateNetwork(object sender, EventArgs e)
         {
             TrainedData++;
-            matID = rnd.Next(0, 10000);
+            for (int i = 0; i < matID.Length; i++)
+                matID[i] = rnd.Next(0, 10000);
             ForwardNetwork();
             double UnperturbedError = FindError();
             BackPropagate();
             string output = "";
             for (int i = 0; i < 10; i++)
             {
-                lightINLabel[i].BackColor = labMatrix[matID] == i ? Color.Green : Color.Black;
-                lightOUTLabel[i].Text = prediction[i].ToString("p1");
-                lightOUTLabel[i].BackColor = 255 * outneuron[i] > 0 ? Color.FromArgb(255, (int)((float)255 * outneuron[i]), 0, 0) : Color.FromArgb(255, 0, 0, (int)((float)255 * outneuron[i]));
+                lightINLabel[i].BackColor = labMatrix[matID[0]] == i ? Color.Green : Color.Black;
+                lightOUTLabel[i].Text = prediction[0,i].ToString("p1");
+                lightOUTLabel[i].BackColor = 255 * outneuron[0,i] > 0 ? Color.FromArgb(255, (int)((float)255 * outneuron[0,i]), 0, 0) : Color.FromArgb(255, 0, 0, (int)((float)255 * outneuron[0,i]));
             }
             for (int i = 0; i < 28 * 28; i++)
             {
-                Image[i % 28, i / 28].BackColor = Color.FromArgb(255, imgMatrix[matID][i / 28, i % 28],
-                                                                      imgMatrix[matID][i / 28, i % 28],
-                                                                      imgMatrix[matID][i / 28, i % 28]);
+                Image[i % 28, i / 28].BackColor = Color.FromArgb(255, imgMatrix[matID[0]][i / 28, i % 28],
+                                                                      imgMatrix[matID[0]][i / 28, i % 28],
+                                                                      imgMatrix[matID[0]][i / 28, i % 28]);
             }
             output += "Error: " + UnperturbedError.ToString("p0") + Environment.NewLine +
                       "Data Trained: " + TrainedData.ToString();
@@ -111,34 +113,36 @@ namespace sol
         }
         private void ForwardNetwork()
         {
-            Matrix<double> outputs = DenseMatrix.OfColumnVectors(ConvertToVector(imgMatrix[matID]));
-            for (int i = 1; i < structure.Length; i++)
+            for (int i = 0; i < matID.Length; i++)
             {
-                outputs = Sigmoid(Weight[i-1].Multiply(outputs)+Bias[i-1]);
+                Matrix<double> outputs = DenseMatrix.OfColumnVectors(ConvertToVector(imgMatrix[matID[i]]));
+                for (int j = 1; j < structure.Length; j++)
+                {
+                    outputs = Sigmoid(Weight[j - 1].Multiply(outputs) + Bias[j - 1]);
+                }
+                for (int j = 0; j < 10; j++)
+                    outneuron[i,j] = outputs[j, 0];
             }
-            for (int i = 0; i < 10; i++)
-                outneuron[i] = outputs[i, 0];
         }
         private double FindError()
         {
-            prediction = new double[10];
-            double tot = 0;
-            for (int i = 0; i < outneuron.Length; i++)
-            {
-                tot += outneuron[i];
-            }
-            for (int i = 0; i < outneuron.Length; i++)
-            {
-                prediction[i] = outneuron[i] / tot;
-            }
+            prediction = new double[matID.Length,10];
             double error = 0;
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < matID.Length; i++)
             {
-                error += i == labMatrix[matID] ?
-                    (1 - prediction[i]) * (1 - prediction[i]) :
-                    (0 - prediction[i]) * (0 - prediction[i]);
+                double tot = 0;
+                for (int j = 0; j < 10; j++)
+                    tot += outneuron[i,j];
+                for (int j = 0; j < 10; j++)
+                    prediction[i,j] = outneuron[i,j] / tot;
+                for (int j = 0; j < 10; j++)
+                {
+                    error += j == labMatrix[matID[i]] ?
+                        (1 - prediction[i,j]) * (1 - prediction[i,j]) :
+                        (0 - prediction[i,j]) * (0 - prediction[i,j]);
+                }
             }
-            return error/2;
+            return error;
         }
         private void BackPropagate()
         {
@@ -150,7 +154,7 @@ namespace sol
                         Weight[i][j, k] += h;
                         ForwardNetwork();
                         double newerror = FindError();
-                        double gradient = (newerror - gradient) / h;
+                        double gradient = (newerror - error) / h;
                         Weight[i][j, k] -= h +_learningRate * gradient;
                     }
             for (int i = 0; i < Bias.Count(); i++)
